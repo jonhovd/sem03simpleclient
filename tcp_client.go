@@ -14,21 +14,28 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Krypter meldingen fra kommandolinjen
 	kryptertMelding := mycrypt.Krypter([]rune(os.Args[1]), mycrypt.ALF_SEM03, 4)
 	log.Println("Kryptert melding: ", string(kryptertMelding))
+
+	// Send kryptert melding til serveren
 	_, err = conn.Write([]byte(string(kryptertMelding)))
-
-	log.Println("os.Args[1] = ", os.Args[1])
-
-	_, err = conn.Write([]byte(os.Args[1]))
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Motta kryptert svar fra serveren
 	buf := make([]byte, 1024)
 	n, err := conn.Read(buf)
 	if err != nil {
 		log.Fatal(err)
 	}
-	response := string(buf[:n])
-	log.Printf("reply from proxy: %s", response)
+	kryptertSvar := string(buf[:n])
+
+	// Dekrypter meldingen fra serveren
+	dekryptertSvar := mycrypt.Krypter([]rune(kryptertSvar), mycrypt.ALF_SEM03, len(mycrypt.ALF_SEM03)-4)
+	log.Println("Dekryptert svar: ", string(dekryptertSvar))
+
+	// Skriv ut svar fra serveren
+	log.Printf("Svar fra proxy: %s", string(dekryptertSvar))
 }
